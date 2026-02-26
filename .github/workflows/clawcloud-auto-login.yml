@@ -1,9 +1,12 @@
-name: ClawCloud 自动登录
+name: ClawCloud 自动登录保活
 
 on:
   schedule:
-    - cron: '0 22 */15 * *'
+    - cron: '0 1 */10 * *'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   auto-login:
@@ -13,6 +16,8 @@ jobs:
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # 明确指定 token
 
       - name: 设置 Python
         uses: actions/setup-python@v5
@@ -21,8 +26,7 @@ jobs:
 
       - name: 安装依赖
         run: |
-          python -m pip install --upgrade pip
-          pip install -r clawcloud-run/requirements.txt
+          pip install playwright requests pynacl
           playwright install chromium
           playwright install-deps
 
@@ -33,5 +37,13 @@ jobs:
           GH_SESSION: ${{ secrets.GH_SESSION }}
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: python clawcloud-run/auto-login.py
+          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+        run: python scripts/auto_login.py
+        
+      - name: Keepalive Workflow
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git pull --rebase || true
+          git commit --allow-empty -m "Chore: Keep-alive [skip ci]"
+          git push
