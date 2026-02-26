@@ -38,7 +38,7 @@ jobs:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
           REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-        run: python scripts/auto_login.py
+        run: python clawcloud-run/auto-login.py
         
       - name: Keepalive Workflow
         run: |
